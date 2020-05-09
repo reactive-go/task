@@ -25,11 +25,11 @@ type (
 	Event interface {
 		Signal()
 	}
-	// A OneShotEvent is a thread-safe event that can be used to interrupt and initiate the
-	// shutdown of one or more long running goroutines.
+	// A OneShotEvent is a thread-safe event that can be used to interrupt one or more long
+	// running goroutines.
 	OneShotEvent struct {
-		C     chan struct{}
-		state int32
+		C         chan struct{}
+		signalled int32
 	}
 )
 
@@ -47,13 +47,13 @@ func (rcv *OneShotEvent) Init() {
 
 // IsSignalled returns true if the OneShotEvent has been stopped.
 func (rcv *OneShotEvent) IsSignalled() bool {
-	return atomic.LoadInt32(&rcv.state) == 1
+	return atomic.LoadInt32(&rcv.signalled) == 1
 }
 
 // Signal puts the OneShotEvent in a signalled state.
 // Multiple calls to Signal are idempotent and will not panic.
 func (rcv *OneShotEvent) Signal() {
-	if atomic.CompareAndSwapInt32(&rcv.state, 0, 1) {
+	if atomic.CompareAndSwapInt32(&rcv.signalled, 0, 1) {
 		// A closed channel never blocks,
 		// so channel closure can be used to signal an "event" to many goroutines.
 		close(rcv.C)
