@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGroup(t *testing.T) {
+func TestGroupSignal(t *testing.T) {
 	group := task.NewGroup()
 	assert.False(t, group.IsSignalled())
 	assert.True(t, group.Sleep(10*time.Millisecond))

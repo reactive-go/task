@@ -22,6 +22,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGroupDone(t *testing.T) {
+
+	group := task.NewGroup()
+	ctx := task.WithGroup(context.Background(), group)
+	select {
+	case <-ctx.Done():
+		assert.Fail(t, "should not be done")
+	default:
+	}
+
+	group.Signal()
+	select {
+	case <-ctx.Done():
+	default:
+		assert.Fail(t, "should be done")
+	}
+}
+
 func TestGroupFromContext(t *testing.T) {
 
 	ctx := context.Background()
@@ -34,6 +52,24 @@ func TestGroupFromContext(t *testing.T) {
 	val, ok = task.GroupFromContext(ctx)
 	assert.Equal(t, group, val)
 	assert.True(t, ok)
+}
+
+func TestOneShotEventDone(t *testing.T) {
+
+	stopEvent := task.NewOneShotEvent()
+	ctx := task.WithOneShotEvent(context.Background(), stopEvent)
+	select {
+	case <-ctx.Done():
+		assert.Fail(t, "should not be done")
+	default:
+	}
+
+	stopEvent.Signal()
+	select {
+	case <-ctx.Done():
+	default:
+		assert.Fail(t, "should be done")
+	}
 }
 
 func TestOneShotEventFromContext(t *testing.T) {
