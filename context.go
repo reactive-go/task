@@ -48,8 +48,14 @@ func (rcv *groupCtx) Done() <-chan struct{} {
 	return rcv.group.C
 }
 
+// Err returns context.Canceled if the Done channel is closed or nil otherwise.
+// After Err returns a non-nil error, successive calls to Err return the same error.
+// The Err method is overridden to maintain the context.Canceled contract.
 func (rcv *groupCtx) Err() error {
-	return rcv.group.Err()
+	if rcv.group.IsSignalled() {
+		return context.Canceled
+	}
+	return nil
 }
 
 func (rcv *groupCtx) Value(key interface{}) interface{} {

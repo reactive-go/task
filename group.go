@@ -82,6 +82,7 @@ func (rcv *Group) Done(err error) {
 }
 
 // Err returns the first non-nil error (if any) specified in a call to Done.
+// After Err returns a non-nil error, successive calls to Err return the same error.
 func (rcv *Group) Err() error {
 	rcv.mu.Lock()
 	err := rcv.err
