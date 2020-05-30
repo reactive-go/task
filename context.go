@@ -88,6 +88,16 @@ func (rcv *oneShotEventCtx) Done() <-chan struct{} {
 	return rcv.event.C
 }
 
+// Err returns context.Canceled if the Done channel is closed or nil otherwise.
+// After Err returns a non-nil error, successive calls to Err return the same error.
+// The Err method is overridden to maintain the context.Canceled contract.
+func (rcv *oneShotEventCtx) Err() error {
+	if rcv.event.IsSignalled() {
+		return context.Canceled
+	}
+	return nil
+}
+
 func (rcv *oneShotEventCtx) Value(key interface{}) interface{} {
 	if key == oneShotEvent {
 		return rcv.event
