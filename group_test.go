@@ -16,6 +16,7 @@ package task_test
 
 import (
 	"errors"
+	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -24,6 +25,22 @@ import (
 	"github.com/reactive-go/task"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGroupDoneNil(t *testing.T) {
+	group := task.NewGroup()
+	group.Add(1)
+	group.Done(nil)
+	err := group.Err()
+	assert.Nil(t, err)
+}
+
+func TestGroupDoneErr(t *testing.T) {
+	group := task.NewGroup()
+	group.Add(1)
+	group.Done(io.EOF)
+	err := group.Err()
+	assert.Equal(t, io.EOF, err)
+}
 
 func TestGroupSignal(t *testing.T) {
 	group := task.NewGroup()
@@ -44,6 +61,16 @@ func TestGroupSignal(t *testing.T) {
 
 	group.Wait()
 	assert.Equal(t, errTest, group.Err())
+}
+
+func TestGroupWaitTimeout(t *testing.T) {
+	group := task.NewGroup()
+	group.Add(1)
+	err := group.WaitTimeout(10 * time.Millisecond)
+	assert.Equal(t, task.ErrTimeout, err)
+	group.Done(nil)
+	err = group.Err()
+	assert.Nil(t, err)
 }
 
 func TestWaitGroup(t *testing.T) {

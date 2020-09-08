@@ -16,6 +16,7 @@ package task
 
 import (
 	"sync"
+	"time"
 )
 
 // A Group manages a group of goroutines.
@@ -90,20 +91,30 @@ func (rcv *Group) Err() error {
 	return err
 }
 
-// SignalAndWait puts the OneShotEvent in a signalled state.
-// And then waits until the Group counter is zero.
-// Returns the first non-nil error (if any) specified in a call to Done.
-func (rcv *Group) SignalAndWait() error {
-	rcv.Signal()
-	return rcv.Wait()
-}
-
-// Wait waits until the Group counter is zero,
-// which typically signifies that all function calls from the Go method have returned.
+// Wait waits until the Group counter is zero.
+// A zero counter typically signifies that all function calls from the Go method have returned.
 // Returns the first non-nil error (if any) specified in a call to Done.
 func (rcv *Group) Wait() error {
 	rcv.wg.Wait()
 	return rcv.Err()
+}
+
+// WaitTimeout waits until the Group counter is zero or a timeout occurs.
+// A zero counter typically signifies that all function calls from the Go method have returned.
+// Returns ErrTimeout if a timeout occurs.
+// Otherwise, returns the first non-nil error (if any) specified in a call to Done.
+func (rcv *Group) WaitTimeout(timeout time.Duration) error {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		rcv.wg.Wait()
+	}()
+	select {
+	case <-c:
+		return rcv.Err()
+	case <-time.After(timeout):
+		return ErrTimeout
+	}
 }
 
 // Go runs the task asynchronously in a new goroutine.

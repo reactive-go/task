@@ -58,7 +58,8 @@ func TestTask_OneGood(t *testing.T) {
 	case <-group.C:
 		assert.Fail(t, "group is signalled")
 	}
-	assert.NoError(t, group.SignalAndWait())
+	group.Signal()
+	assert.NoError(t, group.Wait())
 }
 
 func TestTask_TwoGood(t *testing.T) {
@@ -78,7 +79,8 @@ func TestTask_TwoGood(t *testing.T) {
 	case <-group.C:
 		assert.Fail(t, "group is signalled")
 	}
-	assert.NoError(t, group.SignalAndWait())
+	group.Signal()
+	assert.NoError(t, group.Wait())
 }
 
 func TestTask_OneBad(t *testing.T) {
